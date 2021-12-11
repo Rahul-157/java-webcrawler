@@ -8,7 +8,7 @@ import com.rahul.lld.WebCrawler.Crawler;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public class App 
+public class Main 
 {
     private static Logger log= Log.LOGGER;
     private static SharedQueue sharedQueue = SharedQueue.getInstance();
@@ -16,5 +16,6 @@ public class App
         log.info("App Started");
         Crawler crawler = new Crawler();
         crawler.startCrawling();
+    
     }
 }
