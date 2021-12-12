@@ -6,7 +6,7 @@ import javafx.util.Pair;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-
+import java.io.*;  
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,24 +17,25 @@ import java.util.regex.Pattern;
 public class WebSpider implements Runnable{
     private final static SharedQueue sharedQueue = SharedQueue.getInstance();
     private final UrlUtils urlUtils = new UrlUtils();
+    private final GetRequest request = new GetRequest();
     private final static FileUtils fileUtils = FileUtils.getInstance();
     private static Logger log= Log.LOGGER;
     private URL urlToProcess;
     private Integer currentUrlLevel;
     private final Pattern p = Pattern.compile(Constants.D_10);
 
-    void processPage(String res){
-        Matcher m = p.matcher(res);
+    void processPage(Document res){
+        Matcher m = p.matcher(res.body().text());
         StringBuilder results = new StringBuilder();
         while(m.find()){
             results.append(m.group()).append("\n");
         }
         fileUtils.write(results.toString());
-        Document document = Jsoup.parse(res);
-        Elements elements = document.getElementsByTag("a");
+        Elements elements = res.body().getElementsByTag("a");
         elements.forEach(element -> {
             String href = element.attr("href");
             try {
+                log.info(href);
                 if(urlUtils.isValidUrl(href) && !sharedQueue.alreadyVisited(href))
                     sharedQueue.put(new URL(href),currentUrlLevel+1);
                 else if(urlUtils.isValidPath(href)){
@@ -56,10 +57,13 @@ public class WebSpider implements Runnable{
             return;
         try {
             log.info(String.format("Processing URL : %s",urlToProcess));
-            String response = new GetRequest().get(urlToProcess);
+            Document response = request.get(urlToProcess);
             processPage(response);
         } catch (IOException  e){
-            log.severe(e.getMessage());
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            String exceptionAsString = sw.toString();
+            log.severe(exceptionAsString);
         }
     }
 
