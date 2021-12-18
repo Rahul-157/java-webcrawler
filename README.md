@@ -4,9 +4,10 @@ Usage
 
 mvn package
 java -jar {path_to_fatjar} {config.json path}
+
 eg java -jar java-webcrawler-1.0-SNAPSHOT-jar-with-dependencies.jar config.json
 
-
+```yaml
 config.json
 {
   "NUM_SPIDERS": 10,  // total number of parallel threads
@@ -15,3 +16,4 @@ config.json
   "INITIAL_QUERIES_FILE" : "./queries.txt",  // initial search queries to be written in this file newline seperated
   "SEARCH_ENGINES": "google" // where you want to search your query initially, only google supported as of now
 }
+```
