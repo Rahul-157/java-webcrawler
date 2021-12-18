@@ -1,0 +1,7 @@
+{
+  "NUM_SPIDERS": 10,
+  "MAX_LEVEL": 3,
+  "REGEX_TO_EXTRACT": "(\\+\\d{1,2}\\s?)?1?\\-?\\.?\\s?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}",
+  "INITIAL_QUERIES_FILE" : "./queries.txt",
+  "SEARCH_ENGINES": "google"
+}

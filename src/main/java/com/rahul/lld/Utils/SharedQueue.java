@@ -37,9 +37,11 @@ public class SharedQueue  {
         return getInstance();
     }
 
-    public synchronized  void put(URL url,Integer level)  {
-        this.queue.add(new Pair(url,level));
-    }
+    public synchronized  void put(URL url,Integer level) { this.queue.add(new Pair(url,level)); }
+
+    public synchronized void visitURL(URL url){ this.visitURL(url.toString()); }
+
+    public synchronized void visitURL(String url) { this.urlVisited.add(url); }
 
     public synchronized  Pair<URL,Integer> get(){
         return this.queue.poll();

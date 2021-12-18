@@ -3,69 +3,43 @@ package com.rahul.lld.WebCrawler;
 
 import com.rahul.lld.Utils.*;
 import javafx.util.Pair;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import java.io.*;  
-import java.io.IOException;
+
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WebSpider implements Runnable{
-    private final static SharedQueue sharedQueue = SharedQueue.getInstance();
-    private final UrlUtils urlUtils = new UrlUtils();
-    private final GetRequest request = new GetRequest();
-    private final static FileUtils fileUtils = FileUtils.getInstance();
-    private static Logger log= Log.LOGGER;
-    private URL urlToProcess;
-    private Integer currentUrlLevel;
-    private final Pattern p = Pattern.compile(Constants.D_10);
+public class WebSpider extends Spider implements Runnable{
 
+    private final Pattern p = Pattern.compile(Constants.REGEX_TO_EXTRACT);
+
+    @Override
     void processPage(Document res){
         Matcher m = p.matcher(res.body().text());
         StringBuilder results = new StringBuilder();
         while(m.find()){
-            results.append(m.group()).append("\n");
+            results.append(urlToProcess.toString()).append(",").append(m.group()).append("\n");
         }
         fileUtils.write(results.toString());
         Elements elements = res.body().getElementsByTag("a");
         elements.forEach(element -> {
             String href = element.attr("href");
             try {
-                log.info(href);
                 if(urlUtils.isValidUrl(href) && !sharedQueue.alreadyVisited(href))
                     sharedQueue.put(new URL(href),currentUrlLevel+1);
                 else if(urlUtils.isValidPath(href)){
-                    URL hostWithPath = new URL(urlToProcess.getProtocol(),urlToProcess.getHost(),urlUtils.encodeURL(href));
-                    if(!sharedQueue.alreadyVisited(hostWithPath.toString()))
+                    URL hostWithPath = new URL(urlToProcess.getProtocol(),urlToProcess.getHost(),href);
+                    if(!sharedQueue.alreadyVisited(hostWithPath.toString()) && currentUrlLevel+1<=Constants.MAX_LEVEL)
                         sharedQueue.put(hostWithPath,currentUrlLevel+1);
                 }
             } catch (MalformedURLException e) {
-
                 log.severe(e.getMessage());
             }
         });
     }
 
-    public void processCurrentURL()  {
-        if (this.currentUrlLevel > Constants.MAX_LEVEL)
-            return;
-        if(sharedQueue.alreadyVisited(urlToProcess))
-            return;
-        try {
-            log.info(String.format("Processing URL : %s",urlToProcess));
-            Document response = request.get(urlToProcess);
-            processPage(response);
-        } catch (IOException  e){
-            StringWriter sw = new StringWriter();
-            e.printStackTrace(new PrintWriter(sw));
-            String exceptionAsString = sw.toString();
-            log.severe(exceptionAsString);
-        }
-    }
 
     @Override
     public void run() {
@@ -76,7 +50,7 @@ public class WebSpider implements Runnable{
                     Pair<URL, Integer> extractedUrl = sharedQueue.get();
                     this.urlToProcess = extractedUrl.getKey();
                     this.currentUrlLevel = extractedUrl.getValue();
-                    this.processCurrentURL();
+                    this.fetchCurrentURL();
                 }
                 log.info(String.format("%s observed URL Queue Empty. Countdown : %d",Thread.currentThread().getName(),retries));
                 Thread.sleep(Constants.SLEEP_BETWEEN_RETRIES);
