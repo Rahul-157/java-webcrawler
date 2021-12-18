@@ -1,11 +1,13 @@
 # java-webcrawler
 
 Usage
-
+```
 mvn package
+
 java -jar {path_to_fatjar} {config.json path}
 
 eg java -jar java-webcrawler-1.0-SNAPSHOT-jar-with-dependencies.jar config.json
+```
 
 ```yaml
 config.json
